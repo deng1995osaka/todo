@@ -106,14 +106,6 @@ python main.py
 
 ---
 
-## 🛤 Roadmap
-
-* Save tasks (persistent storage)
-* Delete & reorder tasks (drag-and-drop)
-* Language switcher (ZH/JA/EN)
-* Enhanced UI with assets
-
----
 
 ## 📜 License
 

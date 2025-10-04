@@ -1,79 +1,116 @@
-## Todo (Task Decomposition)
+# Todo (Task Decomposition)
 
-An elegant, minimal desktop Todo app with automatic task decomposition powered by DeepSeek. Built with Python Tkinter and styled to resemble Apple Notes.
+*A minimal desktop Todo app with automatic task decomposition powered by DeepSeek*
 
-### Features
-- **Task management**: add tasks, toggle completion
-- **Task decomposition**: select a task and let DeepSeek generate Japanese subtasks
-- **Hierarchical display**: parent tasks as checkboxes; subtasks as indented labels
-- **Non-blocking UI**: decomposition runs in a background thread
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![Tkinter](https://img.shields.io/badge/Tkinter-GUI-lightgrey.svg)](https://docs.python.org/3/library/tkinter.html)
+[![DeepSeek](https://img.shields.io/badge/DeepSeek-API-orange.svg)](https://deepseek.com/)
+[![License](https://img.shields.io/badge/license-Learning%20Use-green.svg)](#license)
 
-### Project Structure
-```
+An elegant, Apple Notes–style desktop Todo app.
+Write tasks, click **分解**, and let **DeepSeek** generate subtasks in Japanese (or any language you configure).
+
+---
+
+## ✨ Features
+
+* **Task management** — add tasks, toggle completion
+* **Task decomposition** — generate subtasks via DeepSeek
+* **Hierarchical view** — parent tasks (checkboxes), subtasks (indented labels)
+* **Responsive UI** — background threading prevents blocking
+
+---
+
+## 🗂 Project Structure
+
+```text
 todo/
-  ├─ assets/                 # Fonts & images (not strictly required by current UI)
-  ├─ config.py               # API config and decomposition prompt
-  ├─ main.py                 # Tkinter UI entry point
-  └─ task_manager.py         # Task model and decomposition logic (reusable)
+  ├─ assets/          # Fonts & images (optional)
+  ├─ config.py        # API config & decomposition prompt
+  ├─ main.py          # Tkinter UI entry point
+  └─ task_manager.py  # Task model & decomposition logic
 ```
 
-### Requirements
-- macOS (or any desktop OS with Tkinter support)
-- Python 3.9+
-- Dependencies: `requests` (Tkinter ships with Python standard library)
+---
 
-Install dependencies:
+## ⚙️ Requirements
+
+* **OS:** macOS / Linux / Windows (Tkinter supported)
+* **Python:** 3.9+
+* **Dependencies:** `requests`
+
+Install deps:
+
 ```bash
 pip install requests
 ```
 
-### Configure DeepSeek
-Edit `config.py` and set:
-- `DEEPSEEK_API_KEY`: your API key
-- `DEEPSEEK_API_URL`: `https://api.deepseek.com/v1/chat/completions`
-- `DEEPSEEK_MODEL`: `deepseek-chat`
+---
 
-The default prompt instructs DeepSeek to reply in Japanese with a numbered bullet list. If you prefer Chinese or English output, update the prompt in `config.py` and the system message in `main.py`/`task_manager.py` accordingly.
+## 🔑 Configure DeepSeek
 
-Security note:
-- Do not commit real API keys. Consider loading from environment variables instead:
+Edit `config.py`:
+
+* `DEEPSEEK_API_KEY` — your API key
+* `DEEPSEEK_API_URL` — `https://api.deepseek.com/v1/chat/completions`
+* `DEEPSEEK_MODEL` — `deepseek-chat`
+
+Default prompt outputs Japanese subtasks (numbered list).
+Change prompt in `config.py` + system message in `main.py`/`task_manager.py` to switch language.
+
+**Security tip:**
+
 ```python
 import os
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 ```
 
-### Run
+---
+
+## ▶️ Run
+
 ```bash
 python main.py
 ```
 
-### How It Works
-- `task_manager.py`
-  - `Task`: dataclass with nested `subtasks` support
-  - `TaskManager`: manages tasks, toggles completion, and performs asynchronous decomposition via DeepSeek
-  - Response handling: attempts JSON parse first; if it fails, falls back to cleaning numbered bullet text
-- `main.py`
-  - Tkinter UI: input field, "タスク追加" button, task list, and "分解" button
-  - Selecting a task highlights it; clicking "分解" attaches generated subtasks under the selected task
+---
 
-### Usage
-1. Type a task name at the top and click "タスク追加"
-2. Click a parent task to select it (highlighted background)
-3. Click "分解" to generate Japanese subtasks via DeepSeek
-4. Toggle the checkbox to mark a parent task done/undone
+## 🛠 How It Works
 
-### Troubleshooting
-- **No response / network error**: verify `DEEPSEEK_API_KEY` and internet access to `api.deepseek.com`
-- **Output not in JSON**: the app automatically cleans numbered bullet lines
-- **Language**: change prompt and system messages to your preferred language
+* **task\_manager.py**
 
-### Roadmap
-- Persist tasks (current data is in-memory only)
-- Delete tasks and drag-and-drop ordering
-- Language switcher (ZH/JA/EN)
-- Enhanced UI using assets
+  * `Task`: dataclass with nested `subtasks`
+  * `TaskManager`: add/toggle tasks, async decomposition via DeepSeek
+  * Response: try JSON parse → fallback to clean numbered bullets
+* **main.py**
 
-### License
-For learning and personal use only. Check third-party API and asset licenses for commercial usage.
+  * Tkinter UI with input field, "タスク追加" button, task list, and "分解" button
+  * Selected task highlights; generated subtasks attach beneath
 
+---
+
+## 📒 Usage
+
+1. Type a task → click **タスク追加**
+2. Select a parent task (highlighted)
+3. Click **分解** → DeepSeek generates subtasks
+4. Toggle checkbox → mark task done/undone
+
+---
+
+## 🐞 Troubleshooting
+
+* **No response / network error:** check API key & internet access
+* **Non-JSON output:** app auto-cleans numbered bullet lines
+* **Wrong language:** update prompt/system messages
+
+---
+
+
+## 📜 License
+
+For **learning & personal use only**.
+Check third-party API & asset licenses for commercial projects.
+
+---
 

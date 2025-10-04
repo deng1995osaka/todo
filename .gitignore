@@ -1,40 +1,68 @@
-# Byte-compiled / optimized / DLL files
+# 环境变量文件 - 包含敏感信息，不要提交
+.env
+
+# Python 缓存文件
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
+*.so
 
-# Virtual environments
-.venv/
-venv/
-.env
-.env.*
+# 分发/打包
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
+# PyInstaller
+*.manifest
+*.spec
 
-# Logs
-logs
-*.log
-
-# Python tooling
-.mypy_cache/
-.pytest_cache/
-.coverage*
+# 单元测试/覆盖率报告
 htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
-# IDE
+# 虚拟环境
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE 文件
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Tk / runtime
-*.pid
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Local assets or cache (optional)
-assets/cache/
-
-# Build
-build/
-dist/
-*.egg-info/
+# 日志文件
+*.log

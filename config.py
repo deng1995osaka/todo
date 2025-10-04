@@ -1,9 +1,13 @@
 """配置文件"""
-
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# 加载环境变量文件
+load_dotenv()
 
 # DeepSeek API配置
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")  # 从环境变量读取 API 密钥
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")  # 从环境变量读取API密钥
 DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions")  # API端点
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")  # 使用的模型
 
@@ -19,4 +23,6 @@ TASK_DECOMPOSITION_PROMPT = """
 2. 二番目のサブタスク
 3. 三番目のサブタスク
 ...
-""" 
+"""
+# 数据持久化位置
+TASKS_PATH = os.getenv("TASKS_PATH", str(Path.cwd() / "tasks.json"))

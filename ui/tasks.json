@@ -1,0 +1,59 @@
+{
+  "tasks": [
+    {
+      "id": "d36b635a-83c9-4265-ac7c-44d32a8e2c01",
+      "name": "キャベツ餃子を作る",
+      "completed": false,
+      "subtasks": [
+        {
+          "id": "871bd3cc-ff15-45c3-83bc-c4fd176fc075",
+          "name": "キャベツを洗って細かく刻む",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "7b613ccd-527e-4037-bebb-3d64b6863177",
+          "name": "ひき肉と調味料をボウルに入れて混ぜる",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "6988dc5f-481e-44a5-b15f-0e0f0935a83b",
+          "name": "刻んだキャベツを加えて具材をよく混ぜる",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "c4236bc8-44d2-4e77-8a1f-9fb79dab6db1",
+          "name": "餃子の皮に具を適量包む",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "9a572d25-aa0b-4069-a4f8-192d52a96dd5",
+          "name": "フライパンに油をひいて餃子を並べる",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "d37595df-78e2-4a02-b7be-463e6378c2f3",
+          "name": "水を加えて蓋をし、蒸し焼きにする",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "bbb8eb5e-1376-40c1-afcc-0f3ccb834efa",
+          "name": "水分がなくなったら油を追加して焼き色をつける",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "9db18ad6-bded-407d-bc8d-5a003dcc4d85",
+          "name": "お皿に盛り付けて完成",
+          "completed": false,
+          "subtasks": []
+        }
+      ]
+    }
+  ]
+}

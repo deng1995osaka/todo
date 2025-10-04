@@ -1,0 +1,53 @@
+{
+  "tasks": [
+    {
+      "id": "86ae4159-f6f8-4c54-8d95-49f08d19c280",
+      "name": "キャベツ餃子を作る",
+      "completed": true,
+      "subtasks": [
+        {
+          "id": "d0c308f3-d4b8-4afd-9f15-e552429d9d3c",
+          "name": "キャベツをみじん切りにする",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "17563cbe-6451-4332-9153-43620ff62260",
+          "name": "ひき肉と調味料を混ぜ合わせる",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "114c39ee-6456-4dba-b294-6651fa504cdb",
+          "name": "キャベツを加えて餃子の具を作る",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "5e763d7f-514d-467c-8116-b8b1ab4b64cb",
+          "name": "餃子の皮で具を包む",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "a2e3a894-5ff1-4bd3-a463-a3243e8a35ec",
+          "name": "フライパンで焼き上げる",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "1f0aba62-a5be-472d-95a7-1a263f3ee937",
+          "name": "水を加えて蒸し焼きにする",
+          "completed": false,
+          "subtasks": []
+        },
+        {
+          "id": "5c110b64-3d52-4cac-af72-0f228249c16e",
+          "name": "水分がなくなるまで焼き仕上げる",
+          "completed": false,
+          "subtasks": []
+        }
+      ]
+    }
+  ]
+}

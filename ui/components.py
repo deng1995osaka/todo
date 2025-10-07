@@ -1,15 +1,15 @@
-"""UI Components for the Todo application with Apple Notes styling"""
+"""Apple NotesスタイリングのTodoアプリケーション用UI Components"""
 import tkinter as tk
 from tkinter import messagebox
 from style.theme import Theme
 
 
 # ============================================================================
-# Custom Widgets
+#  Widgets
 # ============================================================================
 
 class AppleButton(tk.Button):
-    """Custom button with Apple Notes styling and hover effects"""
+    """Apple Notesスタイリングとホバー効果を持つbutton """
     
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -28,16 +28,16 @@ class AppleButton(tk.Button):
         self.bind("<Leave>", self._on_leave)
 
     def _on_hover(self, event):
-        """Handle mouse hover effect"""
+        """hover効果を処理 """
         self.configure(bg=Theme.Color.BUTTON_HOVER, cursor="hand2")
 
     def _on_leave(self, event):
-        """Handle mouse leave effect"""
+        """マウス離脱効果を処理 """
         self.configure(bg=Theme.Color.BUTTON_BG, cursor="")
 
 
 class AppleEntry(tk.Entry):
-    """Custom entry field with Apple Notes styling"""
+    """Apple Notesスタイリングのentry field """
     
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -55,7 +55,7 @@ class AppleEntry(tk.Entry):
 
 
 class AppleRadiobutton(tk.Radiobutton):
-    """Custom radio button with Apple Notes styling"""
+    """Apple Notesスタイリングのradio button """
     
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -76,28 +76,28 @@ class AppleRadiobutton(tk.Radiobutton):
 
 
 # ============================================================================
-# Custom Dialogs
+#  Modal
 # ============================================================================
 
 class ConfirmDialog(tk.Toplevel):
-    """简洁的确认对话框，在父窗口居中显示"""
+    """windowの中央に表示 """
 
     def __init__(self, parent, title, message):
         super().__init__(parent)
         self.result = False
 
-        # 窗口设置
+        # Window設定 
         self.title(title)
         self.configure(bg=Theme.Color.BACKGROUND)
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
 
-        # 创建UI
+        # UIを作成 
         main_frame = tk.Frame(self, bg=Theme.Color.BACKGROUND, padx=30, pady=20)
         main_frame.pack(expand=True, fill=tk.BOTH)
 
-        # 消息标签
+        # Message label
         label = tk.Label(
             main_frame,
             text=message,
@@ -109,7 +109,7 @@ class ConfirmDialog(tk.Toplevel):
         )
         label.pack(pady=(0, 25), expand=True, fill=tk.BOTH)
 
-        # 按钮
+        # Buttons
         button_frame = tk.Frame(main_frame, bg=Theme.Color.BACKGROUND)
         button_frame.pack()
 
@@ -119,16 +119,13 @@ class ConfirmDialog(tk.Toplevel):
         self.cancel_button = AppleButton(button_frame, text="キャンセル", width=8, command=self._on_cancel)
         self.cancel_button.pack(side=tk.LEFT, padx=10)
 
-        # 键盘绑定
-        self.bind('<Return>', lambda e: self._on_confirm())
-        self.bind('<Escape>', lambda e: self._on_cancel())
 
-        # 居中显示
+        # 中央表示
         self._center_on_parent()
         self.wait_window(self)
 
     def _center_on_parent(self):
-        """将对话框居中于父窗口"""
+        """windowの中央に配置 """
         self.update_idletasks()
         
         parent = self.master
@@ -151,15 +148,15 @@ class ConfirmDialog(tk.Toplevel):
 
 
 # ============================================================================
-# Convenience Functions
+# 便利関数 / Convenience Functions
 # ============================================================================
 
 def show_confirm(parent, title="确认", message="确定要执行此操作吗？"):
-    """显示确认对话框，返回用户选择 (True/False)"""
+    """確認dialogを表示、ユーザーの選択を返す (True/False) """
     dialog = ConfirmDialog(parent, title, message)
     return dialog.result
 
 
 def show_error(title, message):
-    """显示错误对话框"""
+    """Show error """
     return messagebox.showerror(title, message)

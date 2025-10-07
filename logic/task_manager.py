@@ -10,7 +10,7 @@ from config import DEEPSEEK_API_KEY, DEEPSEEK_API_URL, DEEPSEEK_MODEL, TASK_DECO
 
 @dataclass
 class Task:
-    """任务数据类（树形）"""
+    """Task data class（ツリー構造）"""
     id: str
     name: str
     completed: bool = False
@@ -18,6 +18,7 @@ class Task:
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> 'Task':
+        """辞書からタスクを作成 """
         return Task(
             id=data["id"],
             name=data["name"],
@@ -26,6 +27,7 @@ class Task:
         )
 
     def to_dict(self) -> Dict[str, Any]:
+        """タスクを辞書に変換 """
         return {
             "id": self.id,
             "name": self.name,
@@ -34,34 +36,30 @@ class Task:
         }
 
 class TaskManager:
-    """任务管理器：内存 + JSON 持久化 + 分解API 调用"""
+    """Task manager：メモリ + JSON保存 + 分解API呼び出し """
     def __init__(self):
         self.tasks: List[Task] = []
-        self._lock = threading.Lock()
-        self.load()  # 尝试从磁盘加载
+        self._lock = threading.Lock()  # thread安全のためのロック 
+        self.load()  # diskから読み込みを試行 
 
-    # ---------- 基础增删改查 ----------
+    # ---------- 基本のCRUD操作  ----------
     def _new_id(self) -> str:
-        # 全局唯一，避免同父任务下重复
+        """globally uniqueなIDを生成 """
         return str(uuid.uuid4())
 
-    def add_task(self, name: str, parent_id: Optional[str] = None) -> Task:
+    def add_task(self, name: str) -> Task:
+        """新しいタスクを追加 """
         with self._lock:
             task = Task(id=self._new_id(), name=name)
-            if parent_id:
-                parent = self.find_task(parent_id)
-                if parent:
-                    parent.subtasks.append(task)
-                else:
-                    # 父任务不存在则降级为顶层任务
-                    self.tasks.append(task)
-            else:
-                self.tasks.append(task)
+            # 常にトップレベルに追加
+            self.tasks.append(task)
             self.save()
             return task
 
     def find_task(self, task_id: str) -> Optional[Task]:
+        """指定されたIDのタスクを検索 / Find task by ID"""
         def dfs(tasks: List[Task]) -> Optional[Task]:
+            """深さ優先探索 / Depth-first search"""
             for t in tasks:
                 if t.id == task_id:
                     return t
@@ -72,6 +70,7 @@ class TaskManager:
         return dfs(self.tasks)
 
     def toggle_task_completion(self, task_id: str) -> bool:
+        """タスクの完了状態を切り替え / Toggle task completion status"""
         with self._lock:
             task = self.find_task(task_id)
             if task:
@@ -81,56 +80,53 @@ class TaskManager:
             return False
 
     def get_all_tasks(self) -> List[Task]:
+        """すべてのタスクを取得 """
         return self.tasks
 
     def delete_task(self, task_id: str) -> bool:
-        """删除任意层级任务，成功返回 True"""
-        def _delete_in_list(lst):
-            for i, t in enumerate(lst):
+        """トップレベル（母プロジェクト）のみ削除。子タスクは削除不可。成功時Trueを返す"""
+        with self._lock:
+            for i, t in enumerate(self.tasks):
                 if t.id == task_id:
-                    lst.pop(i)
-                    return True
-                if _delete_in_list(t.subtasks):
+                    self.tasks.pop(i)
+                    self.save()
                     return True
             return False
 
-        with self._lock:
-            ok = _delete_in_list(self.tasks)
-            if ok:
-                self.save()
-            return ok
-
-    # ---------- 持久化 ----------
+    # ---------- データの永続化  ----------
     def load(self) -> None:
+        """JSONファイルからタスクを読み込み / Load tasks from JSON file"""
         try:
             with open(TASKS_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.tasks = [Task.from_dict(t) for t in data.get("tasks", [])]
         except FileNotFoundError:
-            self.tasks = []
+            self.tasks = []  # ファイルが存在しない場合は空のリスト 
         except Exception:
-            # 解析失败时安全降级：忽略旧文件
+            # 解析失敗時は安全に降格：古いファイルを無視 
             self.tasks = []
 
     def save(self) -> None:
+        """タスクをJSONファイルに保存 / Save tasks to JSON file"""
         data = {"tasks": [t.to_dict() for t in self.tasks]}
         with open(TASKS_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-    # ---------- 任务分解（异步 + 重试 + 错误信息） ----------
+    # ---------- タスク分解（非同期 + retry + エラー情報） ----------
     def decompose_task(self, task_id: str, callback=None) -> None:
-        """调用DeepSeek将指定任务分解为子任务。callback签名：callback(success: bool, error: Optional[str])"""
+        """DeepSeekを呼び出して指定されたタスクをサブタスクに分解 """
         task = self.find_task(task_id)
         if not task:
             if callback:
-                callback(False, "选中的任务不存在。")
+                callback(False, "選択されたタスクが存在しません。")  # Selected task doesn't exist
             return
 
         def worker():
-            # 快速失败：缺少API Key
+            """ Background worker 関数"""
+            # Quick fail：API Keyが不足 
             if not DEEPSEEK_API_KEY:
                 if callback:
-                    callback(False, "API Key 未设置（请配置环境变量 DEEPSEEK_API_KEY）。")
+                    callback(False, "API Keyが設定されていません（環境変数DEEPSEEK_API_KEYを設定してください）。")
                 return
 
             headers = {
@@ -148,7 +144,7 @@ class TaskManager:
             }
 
             last_error = None
-            for attempt in range(3):  # 最多重试3次
+            for attempt in range(3):  # 最大3回retries 
                 try:
                     resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=30)
                     resp.raise_for_status()
@@ -163,19 +159,20 @@ class TaskManager:
                         callback(True, None)
                     return
                 except requests.RequestException as e:
-                    last_error = f"网络/请求错误：{e}"
+                    last_error = f"ネットワーク/リクエストエラー：{e}"  # Network/request error
                 except (KeyError, ValueError) as e:
-                    last_error = f"响应解析失败：{e}"
-                # 指数退避
+                    last_error = f"レスポンス解析失敗：{e}"  
+                # 指数backoff 
                 time.sleep(2 ** attempt)
 
             if callback:
-                callback(False, last_error or "未知错误")
+                callback(False, last_error or "未知のエラー")  
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _parse_subtasks(self, content: str) -> List[str]:
-        # 尝试JSON，其次按"1. …"行解析
+        """サブタスクを解析 / Parse subtasks"""
+        # まずJSONを試し、次に"1. …"行で解析 
         try:
             data = json.loads(content)
             if isinstance(data, dict) and "subtasks" in data and isinstance(data["subtasks"], list):
@@ -190,7 +187,7 @@ class TaskManager:
             s = raw.strip()
             if not s:
                 continue
-            # 去掉前缀 "1. " / "1)" / "① " 等常见编号
+            # プレフィックス "1. " / "1)" / "① " などの一般的な番号を削除 
             s = s.lstrip("・").replace(")", ".")
             import re
             s = re.sub(r"^[\d①-⑳]+\.\s*", "", s)

@@ -1,10 +1,9 @@
-"""Main application class for the Todo application"""
+
 import tkinter as tk
 from tkinter import ttk
 
 
 
-# Import our modular components
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,42 +12,44 @@ from logic.task_manager import TaskManager, Task
 from ui.components import AppleButton, AppleEntry, AppleRadiobutton, show_confirm, show_error
 from style.theme import Theme
 
+# ==================== Application Class ====================
+
 
 class TodoApp:
-    """Main application class for the Todo application"""
+    """ Main application class for the Todo application"""
     
     def __init__(self, root):
         self.root = root
         self.task_manager = TaskManager()
-        self.selected_task_id: str | None = None  # 单选状态
-        self.marked_ids: set[str] = set()   # 存放"被划线"的任务ID，可叠加
-        self.expanded_ids: set[str] = set()  # 记录"已展开"的任务ID
+        self.selected_task_id: str | None = None  # 選択状態 
+        self.expanded_ids: set[str] = set()  # "展開済み"のタスクIDを記録 
 
-        # 初始化字体（普通 / 删除线）
+        # フォントを初期化（通常 / 取り消し線）
         self.font_normal = Theme.Font.get()
         self.font_overstrike = Theme.Font.get(overstrike=True)
 
         self._setup_window()
         self._build_ui()
         
-        # 顶层默认展开（在第一次刷新前设置，或者设置后再刷新一次）
+        # Top levelをdefaultで展開
         for t in self.task_manager.get_all_tasks():
             self.expanded_ids.add(t.id)
         
         self._refresh_ui()
 
     def _setup_window(self):
-        """Configure the main window"""
+        """main windowを設定 """
         self.root.title("タスク管理")
         self.root.geometry("420x640")
         self.root.configure(bg=Theme.Color.BACKGROUND)
 
     def _build_ui(self):
-        """Build the user interface"""
+        """ Build the user interface"""
         self.main_frame = tk.Frame(self.root, bg=Theme.Color.BACKGROUND)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 10))
 
-        # 顶部输入行
+        # -------------------- 入力エリア --------------------
+      
         self.input_frame = tk.Frame(self.main_frame, bg=Theme.Color.BACKGROUND)
         self.input_frame.pack(fill=tk.X, pady=(0, 10))
         self.task_entry = AppleEntry(self.input_frame)
@@ -56,10 +57,11 @@ class TodoApp:
         self.add_button = AppleButton(self.input_frame, text="タスク追加", command=self._add_task)
         self.add_button.pack(side=tk.RIGHT)
 
-        # 任务列表
+        # -------------------- Task List --------------------
+       
         self.list_frame = tk.Frame(self.main_frame, bg=Theme.Color.BACKGROUND)
         self.list_frame.pack(fill=tk.BOTH, expand=True)
-        # 滚动区域
+        #  Scroll area
         self.canvas = tk.Canvas(self.list_frame, bg=Theme.Color.BACKGROUND, highlightthickness=0)
         self.scrollbar = tk.Scrollbar(self.list_frame, orient="vertical", command=self.canvas.yview)
         self.tasks_container = tk.Frame(self.canvas, bg=Theme.Color.BACKGROUND)
@@ -72,19 +74,22 @@ class TodoApp:
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # 底部按钮区域
+        # -------------------- Buttons --------------------
+      
         self.bottom_frame = tk.Frame(self.main_frame, bg=Theme.Color.BACKGROUND)
         self.bottom_frame.pack(fill=tk.X, pady=(10, 0))
+     
         
-        # 分解按钮
+        # 分解ボタン 
         self.decompose_button = AppleButton(self.bottom_frame, text="分解", command=self._decompose_task)
         self.decompose_button.pack(side=tk.LEFT, padx=5)
         
-        # 删除按钮
+        # 削除ボタン 
         self.delete_button = AppleButton(self.bottom_frame, text="削除", command=self._delete_selected)
         self.delete_button.pack(side=tk.LEFT, padx=5)
         
-        # 进度条区域
+        # -------------------- Progress Bar --------------------
+       
         self.progress_frame = tk.Frame(self.bottom_frame, bg=Theme.Color.BACKGROUND)
         self.progress_frame.pack(side=tk.LEFT, padx=5)
 
@@ -105,39 +110,41 @@ class TodoApp:
         )
         self.progressbar.pack(side=tk.LEFT)
         
-        # 进度条样式优化
+        # Progress bar style optimization
         self.style = ttk.Style()
         self.style.configure("Thick.Horizontal.TProgressbar", 
                            troughcolor=Theme.Color.PROGRESS_BAR_TROUGH, 
                            thickness=10)
         self.progressbar.configure(style="Thick.Horizontal.TProgressbar")
 
+    # ==================== UI Refresh & Rendering ====================
     def _refresh_ui(self):
-        """Refresh the UI to reflect current state"""
-        # 清空容器
+        
+        # Clear container
         for w in self.tasks_container.winfo_children():
             w.destroy()
 
-        self._radio_vars = []  # 改为存储Radio button变量
+        self._radio_vars = []  # Changed to store Radio button variables
         self._task_widgets = []
 
         for task in self.task_manager.get_all_tasks():
             self._add_task_widget(task, level=0)
         
-        # 更新底部按钮状态
+        # bottom_buttons状態を更新 
         self._update_bottom_buttons()
-        # 刷新进度条
+        # Refresh progress bar
         self._refresh_progress()
 
+    # -------------------- Task行の描画 --------------------
     def _add_task_widget(self, task: Task, level: int):
-        """Add a task widget to the UI"""
-        # 行容器
+        """UIにtask widgetを追加 """
+        # Row container
         row = tk.Frame(self.tasks_container, bg=Theme.Color.BACKGROUND)
         row.pack(anchor="w", fill=tk.X, pady=2)
 
         has_children = bool(task.subtasks)
 
-        # 右侧"展开/收起"三角（有子项才显示）
+        # 右側"展開/収納"三角
         if has_children:
             is_open = (task.id in self.expanded_ids)
             glyph = "▾" if is_open else "▸"
@@ -155,7 +162,7 @@ class TodoApp:
             toggle.bind("<Leave>",  lambda e: toggle.config(cursor=""))
 
         if level == 0:
-            # 母项目：使用Radio button
+            # Radio buttonを使用 
             var = tk.BooleanVar(value=(self.selected_task_id == task.id))
             rb = AppleRadiobutton(
                 row,
@@ -164,7 +171,7 @@ class TodoApp:
                 value=True,
                 command=lambda t=task: self._select_parent_task(t)
             )
-            # auto-wrap for radio buttons
+            # radio buttonのauto-wrap 
             try:
                 wrap_px = max(160, 340 - level*20)
                 rb.configure(wraplength=wrap_px, justify='left')
@@ -172,7 +179,7 @@ class TodoApp:
                 pass
             rb.grid(row=0, column=0, padx=10 + level*20, pady=2, sticky="ew")
             
-            # 母项目不能划线，统一背景色
+            # 親項目：線引き不可
             rb.configure(
                 bg=Theme.Color.BACKGROUND,
                 font=self.font_normal
@@ -181,8 +188,8 @@ class TodoApp:
             self._radio_vars.append(var)
             self._task_widgets.append(rb)
         else:
-            # 子项目：只显示文本，可以划线
-            is_marked = (task.id in self.marked_ids)
+            # 子項目：テキストのみ表示、線引き可能 
+            is_marked = task.completed
             label = tk.Label(
                 row,
                 text=task.name,
@@ -191,7 +198,7 @@ class TodoApp:
                 font=self.font_overstrike if is_marked else self.font_normal,
                 anchor="w"
             )
-            # auto-wrap for labels
+            # 子項目のauto-wrap 
             try:
                 wrap_px = max(160, 340 - level*20)
                 label.configure(wraplength=wrap_px, justify='left')
@@ -199,68 +206,68 @@ class TodoApp:
                 pass
             label.grid(row=0, column=0, padx=10 + level*20, pady=2, sticky="ew")
             
-            # 子项目可以点击划线
+            # 子項目はクリックで線引き可能 
             label.bind("<Button-1>", lambda e, t=task: self._toggle_mark_subtask(t))
             label.bind("<Enter>",  lambda e: label.config(cursor="hand2"))
             label.bind("<Leave>",  lambda e: label.config(cursor=""))
 
             self._task_widgets.append(label)
 
-        # 递归渲染子项：仅当"已展开"时才渲染
+        # 子項目を再帰的にレンダリング：「展開済み」の場合のみ 
         if has_children and (task.id in self.expanded_ids):
             for sub in task.subtasks:
                 self._add_task_widget(sub, level+1)
 
+    # ==================== Event Handlers ====================
     def _toggle_expand(self, task: Task):
-        """切换展开/收起状态 - 手风琴效果，同时只能有一个母项目展开"""
+        """展開/収納状態を切り替え - 同時に1つの親項目のみ展開可能 """
         if task.id in self.expanded_ids:
-            # 如果当前任务已展开，则收起
+            # 現在のタスクが展開済みの場合、収納 
             self.expanded_ids.remove(task.id)
         else:
-            # 如果当前任务未展开，则先清空所有展开状态，再展开当前任务
+            # 現在のタスクが未展開の場合、すべての展開状態をクリアしてから現在のタスクを展開 
             self.expanded_ids.clear()
             self.expanded_ids.add(task.id)
         self._refresh_ui()
 
     def _select_parent_task(self, task: Task):
-        """选择母项目（通过Radio button）- 手风琴效果：选择新项目时自动收起其他展开的项目"""
+        """新しい項目を選択時に他の展開項目を自動収納 """
         self.selected_task_id = task.id
         
-        # 🎯 手风琴效果：选择新项目时，收起其他所有展开的项目
         self.expanded_ids.clear()
         
         self._refresh_ui()
 
     def _toggle_mark_subtask(self, task: Task):
-        """切换子项目的标记状态（划线）"""
-        if task.id in self.marked_ids:
-            self.marked_ids.remove(task.id)
-        else:
-            self.marked_ids.add(task.id)
+        """子項目の線引きを切り替え"""
+        
+        self.task_manager.toggle_task_completion(task.id)
         self._refresh_ui()
 
+    # ==================== Utilities ====================
     def _iter_descendants(self, task: Task):
-        """遍历 task 的全部子孙（不含父本身）"""
+        """タスクのすべての子孫を走査（親自体は含まない）"""
         for st in task.subtasks:
             yield st
             yield from self._iter_descendants(st)
 
     def _marked_progress_for(self, task: Task) -> tuple[int, int]:
-        """返回 (已标记数量, 子项目总数)，不含父本身"""
+        """（マーク済み数、子項目総数）を返す、親自体は含まない """
         nodes = list(self._iter_descendants(task))
         total = len(nodes)
-        marked = sum(1 for n in nodes if n.id in self.marked_ids)
+        marked = sum(1 for n in nodes if n.completed)
         return marked, total
 
     def _get_selected_task(self) -> Task | None:
-        """获取当前选中的任务对象"""
+        """現在選択されているtask objectを取得 """
         if not self.selected_task_id:
             return None
         return self.task_manager.find_task(self.selected_task_id)
 
+    # ==================== Progress Update ====================
     def _refresh_progress(self):
-        """刷新底部进度条 - 显示已展开任务的进度（不管是否选中）"""
-        # 获取已展开的任务（手风琴效果，同时只有一个）
+        """Progress barをリフレッシュ """
+        # 展開済みタスクを取得
         expanded_task = None
         for task in self.task_manager.get_all_tasks():
             if task.id in self.expanded_ids:
@@ -268,65 +275,68 @@ class TodoApp:
                 break
         
         if not expanded_task or not expanded_task.subtasks:
-            # 没有已展开的任务或已展开的任务没有子项，隐藏进度条
+            # 展開済みタスクがない、または展開済みタスクに子項目がない場合、progress barを非表示 
             self.progress_frame.pack_forget()
             return
         
-        # 显示进度条：有已展开的任务
+        # progress barを表示：展開済みタスクがある場合 
         self.progress_frame.pack(side=tk.LEFT, padx=5)
         
-        marked, total = self._marked_progress_for(expanded_task)  # 根据"标记集合"统计
+        marked, total = self._marked_progress_for(expanded_task)  # "マーク集合"に基づいて統計 
         percent = int(marked * 100 / total) if total else 0
         self.progressbar["value"] = percent
         self.progress_label.configure(text=f"{percent}%")
 
+    # ==================== Buttons状態更新 ====================
     def _update_bottom_buttons(self):
-        """根据是否选中任务启用/禁用底部按钮"""
+        """taskの選択状態に基づいてbottom buttonsを有効/無効化 """
         has_sel = self.selected_task_id is not None
         if not has_sel:
-            # 没有选中任务，两个按钮都禁用
+            # 選択されたtaskがない場合、両方のボタンを無効化 
             self.decompose_button.configure(state="disabled")
             self.delete_button.configure(state="disabled")
             return
         
-        # 有选中任务，检查分解按钮的启用条件
+        # 選択されたtaskがある場合、分解ボタンの有効化条件をチェック 
         task = self._get_selected_task()
         if task and not task.subtasks:
-            # 有选中 & 没有子项 → 分解按钮可点
+            # 選択済み & 子項目なし → 分解ボタンクリック可能 
             self.decompose_button.configure(state="normal")
         else:
-            # 其他情况 → 分解按钮禁用
+            # その他の場合 → 分解ボタン無効 
             self.decompose_button.configure(state="disabled")
         
-        # 删除按钮始终可用（有选中任务时）
+        # 削除ボタンは常に利用可能（選択されたtaskがある場合）
         self.delete_button.configure(state="normal")
 
+    # ==================== Busy状態管理 ====================
     def _set_busy(self, busy: bool, msg: str = ""):
-        """忙碌状态管理"""
+        
         if busy:
-            # 保存原始按钮文本，如果还没有保存的话
+            # 元のボタンテキストを保存、まだ保存されていない場合 
             if not hasattr(self, '_original_decompose_text'):
                 self._original_decompose_text = self.decompose_button.cget("text")
             
-            # 更新按钮文本为忙碌状态
+            # ボタンテキストをbusy状態に更新 
             if msg:
                 self.decompose_button.configure(text=msg)
             
             self.decompose_button.configure(state="disabled")
             self.delete_button.configure(state="disabled")
         else:
-            # 恢复原始按钮文本
+            # 元のボタンテキストを復元 
             if hasattr(self, '_original_decompose_text'):
                 self.decompose_button.configure(text=self._original_decompose_text)
             
-            # 非忙碌状态下，重新计算按钮状态
+            # 非busy状態で、ボタン状態を再計算 
             self._update_bottom_buttons()
         
         self.add_button.configure(state=("disabled" if busy else "normal"))
         self.root.configure(cursor="watch" if busy else "")
 
+    # ==================== Task操作 ====================
     def _add_task(self):
-        """Add a new task"""
+        """新しいタスクを追加 """
         name = self.task_entry.get().strip()
         if not name:
             return
@@ -335,36 +345,36 @@ class TodoApp:
         self._refresh_ui()
 
     def _decompose_task(self):
-        """Decompose the selected task"""
+        """選択されたタスクを分解 """
         if not self.selected_task_id:
             return
         self._set_busy(True, "分解中…")
 
         def on_complete(success: bool, error: str | None):
-            # 回到主线程刷新
+            #  Return to main thread and refresh
             self.root.after(0, lambda: self._on_decompose_done(success, error))
 
         self.task_manager.decompose_task(self.selected_task_id, on_complete)
 
     def _on_decompose_done(self, success: bool, error: str | None):
-        """Handle decomposition completion"""
+        """分解完了処理 """
         self._set_busy(False, "")
         if success:
-            # 分解完成后自动展开该任务
+            # 分解完了後に自動的にそのタスクを展開 
             if self.selected_task_id:
-                self.expanded_ids.clear()  # 手风琴效果：先清空其他展开
-                self.expanded_ids.add(self.selected_task_id)  # 展开当前任务
+                self.expanded_ids.clear()  # まず他の展開をクリア 
+                self.expanded_ids.add(self.selected_task_id)  # 現在のタスクを展開 
             self._refresh_ui()
         else:
-            message = error or "未知错误"
-            show_error("分解失败", message)
+            message = error or "未知のエラー"  # Unknown error
+            show_error("分解失敗", message)
 
     def _delete_selected(self):
-        """删除当前选中的任务 - 使用自定义确认对话框"""
+        """現在選択されているタスクを削除 """
         if not self.selected_task_id:
             return
         
-        # 🎯 使用自定义确认对话框替换系统弹窗，在"しますか？"后面换行
+        
         if not show_confirm(self.root, "確認", "選択中のタスクを削除しますか？\n（サブタスクごと削除）"):
             return
         
@@ -372,24 +382,26 @@ class TodoApp:
         if not ok:
             show_error("エラー", "削除に失敗しました。")
             return
-        # 清空选中并刷新
+        # 選択をクリアしてリrefresh 
         self.selected_task_id = None
         self._refresh_ui()
 
+    # ==================== アプリケーション起動 ====================
     def run(self):
-        """Start the application main loop"""
+        """ Start the application main loop"""
         self.root.mainloop()
 
 
+# ==================== Entry Points ====================
 def run_app():
-    """Application entry point function"""
+   
     root = tk.Tk()
     app = TodoApp(root)
     app.run()
 
 
 if __name__ == "__main__":
-    """Todo Application Entry Point
+    """ Todo Application Entry Point
     
     This is the main entry point for the Todo application.
     The application has been refactored into a modular structure:
